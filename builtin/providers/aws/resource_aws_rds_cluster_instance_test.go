@@ -109,26 +109,6 @@ func TestAccAWSRDSClusterInstance_kmsKey(t *testing.T) {
 	})
 }
 
-func TestAccAWSRDSClusterInstance_iamAuth(t *testing.T) {
-	var v rds.DBInstance
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAWSClusterInstanceConfigIamAuth(acctest.RandInt()),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSClusterInstanceExists("aws_rds_cluster_instance.cluster_instances", &v),
-					resource.TestCheckResourceAttr(
-						"aws_rds_cluster_instance.cluster_instances", "iam_database_authentication_enabled", "true"),
-				),
-			},
-		},
-	})
-}
-
 // https://github.com/hashicorp/terraform/issues/5350
 func TestAccAWSRDSClusterInstance_disappears(t *testing.T) {
 	var v rds.DBInstance
@@ -514,24 +494,4 @@ resource "aws_db_parameter_group" "bar" {
   }
 }
 `, n, n, n, n)
-}
-
-func testAccAWSClusterInstanceConfigIamAuth(n int) string {
-	return fmt.Sprintf(`
-resource "aws_rds_cluster" "default" {
-  cluster_identifier = "tf-aurora-cluster-test-%d"
-  availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c"]
-  database_name      = "mydb"
-  master_username    = "foo"
-  master_password    = "mustbeeightcharaters"
-  iam_database_authentication_enabled = true
-  skip_final_snapshot = true
-}
-
-resource "aws_rds_cluster_instance" "cluster_instances" {
-  identifier              = "tf-cluster-instance-%d"
-  cluster_identifier      = "${aws_rds_cluster.default.id}"
-  instance_class          = "db.r3.large"
-}
-`, n, n)
 }

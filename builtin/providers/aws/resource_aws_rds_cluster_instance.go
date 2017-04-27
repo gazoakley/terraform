@@ -148,11 +148,6 @@ func resourceAwsRDSClusterInstance() *schema.Resource {
 				Default:  0,
 			},
 
-			"iam_database_authentication_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
 			"tags": tagsSchema(),
 		},
 	}
@@ -204,10 +199,6 @@ func resourceAwsRDSClusterInstanceCreate(d *schema.ResourceData, meta interface{
 
 	if attr, ok := d.GetOk("monitoring_interval"); ok {
 		createOpts.MonitoringInterval = aws.Int64(int64(attr.(int)))
-	}
-
-	if attr, ok := d.GetOk("iam_database_authentication_enabled"); ok {
-		createOpts.EnableIAMDatabaseAuthentication = aws.Bool(attr.(bool))
 	}
 
 	log.Printf("[DEBUG] Creating RDS DB Instance opts: %s", createOpts)
@@ -293,7 +284,6 @@ func resourceAwsRDSClusterInstanceRead(d *schema.ResourceData, meta interface{})
 	d.Set("promotion_tier", db.PromotionTier)
 	d.Set("preferred_backup_window", db.PreferredBackupWindow)
 	d.Set("preferred_maintenance_window", db.PreferredMaintenanceWindow)
-	d.Set("iam_database_authentication_enabled", db.IAMDatabaseAuthenticationEnabled)
 
 	if db.MonitoringInterval != nil {
 		d.Set("monitoring_interval", db.MonitoringInterval)
@@ -372,11 +362,6 @@ func resourceAwsRDSClusterInstanceUpdate(d *schema.ResourceData, meta interface{
 	if d.HasChange("promotion_tier") {
 		d.SetPartial("promotion_tier")
 		req.PromotionTier = aws.Int64(int64(d.Get("promotion_tier").(int)))
-		requestUpdate = true
-	}
-
-	if d.HasChange("iam_database_authentication_enabled") {
-		req.EnableIAMDatabaseAuthentication = aws.Bool(d.Get("iam_database_authentication_enabled").(bool))
 		requestUpdate = true
 	}
 
